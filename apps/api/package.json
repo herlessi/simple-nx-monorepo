@@ -1,0 +1,23 @@
+{
+  "name": "@ci-cd/api",
+  "version": "0.0.1",
+  "private": true,
+  "dependencies": {
+    "@ci-cd/shared-types": "workspace:*",
+    "@nestjs/common": "^11.0.0",
+    "@nestjs/core": "^11.0.0",
+    "@nestjs/platform-express": "^11.0.0",
+    "@prisma/client": "6.19.3",
+    "class-transformer": "^0.5.1",
+    "class-validator": "0.15.1",
+    "reflect-metadata": "^0.2.0",
+    "rxjs": "^7.8.0",
+    "tslib": "^2.3.0"
+  },
+  "devDependencies": {
+    "@nestjs/testing": "^11.0.0",
+    "@types/express": "^5.0.6",
+    "prisma": "6.19.3",
+    "tsx": "^4.23.15"
+  }
+}
