@@ -21,3 +21,11 @@
 - The `nx-generate` skill handles generator discovery internally - don't call nx_docs just to look up generator syntax
 
 <!-- nx configuration end-->
+
+# Git
+
+- NUNCA execute operações de git que alterem o repositório por conta própria. Faça-as somente quando o usuário solicitar explicitamente.
+- Isso inclui: `add`, `commit`, `push`, `pull`, `fetch`, `merge`, `rebase`, `reset`, `revert`, `stash`, `tag`, `checkout`/`switch`, criar/renomear/apagar branches, alterar remotes e operações no GitHub (criar repositório, PR, issue).
+- Comandos somente leitura (`status`, `log`, `diff`, `show`, `branch --list`) podem ser usados livremente.
+- Uma solicitação autoriza apenas a operação pedida naquele momento: pedir um commit não autoriza o push, e um pedido anterior não vale para as próximas alterações.
+- Ao terminar uma tarefa com alterações, apenas informe o que mudou e pergunte se o usuário deseja commitar.
