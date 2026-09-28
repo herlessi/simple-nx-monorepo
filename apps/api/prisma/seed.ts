@@ -10,7 +10,7 @@ const products = [
   { name: 'Mouse sem fio', description: 'Sensor óptico de 16.000 DPI.', emoji: '🖱️', priceCents: 18990, stock: 25 },
   { name: 'Mochila executiva', description: 'Compartimento para notebook de 15".', emoji: '🎒', priceCents: 24900, stock: 20 },
   { name: 'Garrafa térmica', description: 'Mantém a temperatura por 12 horas.', emoji: '🧴', priceCents: 12990, stock: 40 },
-  { name: 'Livro: Observabilidade', description: 'Guia prático de logs, métricas e traces.', emoji: '📘', priceCents: 8990, stock: 35 },
+  { name: 'Livro: TypeScript', description: 'Guia prático de tipagem para front e back.', emoji: '📘', priceCents: 8990, stock: 35 },
   { name: 'Planta suculenta', description: 'Vaso de 10 cm, pouca rega.', emoji: '🪴', priceCents: 2990, stock: 60 },
   { name: 'Luminária de mesa', description: 'LED com 3 temperaturas de cor.', emoji: '💡', priceCents: 15990, stock: 18 },
   { name: 'Camiseta dev', description: 'Algodão, estampa "works on my machine".', emoji: '👕', priceCents: 7990, stock: 45 },

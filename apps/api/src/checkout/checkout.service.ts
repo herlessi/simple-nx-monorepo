@@ -32,7 +32,7 @@ const toOrderDto = (order: OrderWithItems): OrderDto => ({
 const errorMessage = (err: unknown) => (err instanceof Error ? err.message : String(err));
 
 /**
- * Orquestra o checkout. Este é o fluxo principal da demo de telemetria:
+ * Orquestra o checkout:
  * carrinho -> pedido (PENDING) -> estoque -> pagamento -> pedido (PAID) -> notificação.
  */
 @Injectable()

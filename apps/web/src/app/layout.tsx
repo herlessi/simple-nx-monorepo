@@ -3,7 +3,7 @@ import './global.css';
 
 export const metadata = {
   title: 'Mini Shop',
-  description: 'Mini e-commerce para demonstração de telemetria',
+  description: 'Mini e-commerce de exemplo em um monorepo Nx',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

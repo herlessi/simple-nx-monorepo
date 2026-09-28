@@ -21,11 +21,7 @@ function toPayload(response: string | object): ErrorPayload {
   };
 }
 
-/**
- * Padroniza o corpo de erro da API e centraliza o log das exceções.
- * Ponto de extensão para a telemetria: registrar a exceção no span ativo
- * (`span.recordException`) e marcar o status do span como erro.
- */
+/** Padroniza o corpo de erro da API e centraliza o log das exceções. */
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
   private readonly logger = new Logger('Exceptions');

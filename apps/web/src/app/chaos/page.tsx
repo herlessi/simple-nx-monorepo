@@ -44,7 +44,7 @@ export default function ChaosPage() {
     <>
       <h1>Chaos</h1>
       <p className="muted">
-        Injete latência e falhas nos serviços da API para gerar cenários de telemetria. A
+        Injete latência e falhas nos serviços da API para simular cenários de erro. A
         configuração fica em memória e volta ao padrão quando a API reinicia.
       </p>
       {message && <div className={`alert alert-${message.kind}`}>{message.text}</div>}

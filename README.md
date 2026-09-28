@@ -1,92 +1,111 @@
-# Mini Shop — monorepo Nx para demo de telemetria
+# simple-nx-monorepo
 
-Mini e-commerce (catálogo → carrinho → checkout) criado como base para uma
-demonstração de telemetria (OpenTelemetry). Os apps são simples de propósito: o
-objetivo é gerar traces multi-serviço, erros reproduzíveis e métricas de negócio.
+Um monorepo [Nx](https://nx.dev) simples com um front-end e um back-end em TypeScript que
+compartilham tipos por uma biblioteca interna. Serve como base reutilizável para outros
+exemplos e tecnologias.
 
-| Projeto | Stack | Porta |
+O domínio de exemplo é um mini e-commerce (catálogo → carrinho → checkout), só para ter
+um fluxo real entre os apps.
+
+## Stack
+
+| Projeto | Tecnologia | Porta |
 |---|---|---|
 | `apps/web` | Next.js 16 (App Router) | 4200 |
 | `apps/api` | NestJS 11 + Prisma 6 | 3000 (`/api`) |
-| `libs/shared/types` | Tipos/DTOs compartilhados (`@ci-cd/shared-types`) | — |
+| `libs/shared/types` | Tipos compartilhados (`@ci-cd/shared-types`) | — |
 | Postgres 16 | `docker-compose.yml` | 5433 |
 
-## Pré-requisitos
+Gerenciador de pacotes: **pnpm workspaces**. Orquestração de tarefas: **Nx 23**.
 
-- Node 20+ e pnpm 10+
-- Docker (para o Postgres)
+## Estrutura
+
+```
+.
+├─ apps/
+│  ├─ web/            # front-end Next.js
+│  └─ api/            # back-end NestJS + Prisma (schema, migrations e seed em prisma/)
+├─ libs/
+│  └─ shared/types/   # contratos (DTOs) usados pelos dois apps
+├─ docker-compose.yml # Postgres local
+├─ nx.json            # plugins e defaults do Nx
+├─ pnpm-workspace.yaml
+└─ tsconfig.base.json # config TypeScript compartilhada
+```
+
+- **`apps/`** contém o que é executável.
+- **`libs/`** contém código reutilizável, importado pelos apps. A lib `shared/types` tem só
+  tipos (`import type`), então não precisa de build: se um contrato mudar, o TypeScript
+  aponta o erro no front e no back ao mesmo tempo.
+- Os apps dependem da lib via `"@ci-cd/shared-types": "workspace:*"` no `package.json`.
 
 ## Como rodar
+
+Pré-requisitos: Node 20+, pnpm 10+ e Docker.
 
 ```sh
 pnpm install
 cp .env.example .env
-pnpm db:setup   # sobe o Postgres, aplica as migrations e popula 12 produtos
+pnpm db:setup   # sobe o Postgres, aplica as migrations e popula os produtos
 pnpm dev        # API em http://localhost:3000/api e web em http://localhost:4200
 ```
 
-Outros scripts: `pnpm build`, `pnpm lint`, `pnpm test`, `pnpm typecheck`,
-`pnpm db:seed` (reseta os dados), `pnpm db:down`.
-Para mudar o schema: edite `apps/api/prisma/schema.prisma` e rode `pnpm nx run api:db-migrate-dev`.
+## Comandos do monorepo
 
-## Fluxo principal (o trace da demo)
+Todas as tarefas passam pelo Nx, que entende as dependências entre projetos e faz cache
+dos resultados.
 
-`POST /api/checkout` orquestra, em sequência:
+```sh
+pnpm build        # nx run-many -t build
+pnpm test         # nx run-many -t test
+pnpm lint         # nx run-many -t lint
+pnpm typecheck    # nx run-many -t typecheck
 
-```
-checkout
- ├─ cart.get                (Postgres)
- ├─ order.create  PENDING   (Postgres)
- ├─ inventory.reserve       (transação Postgres)
- ├─ payment.charge          (gateway simulado, 100–300 ms)
- ├─ order.update  PAID      (Postgres)
- ├─ cart.clear              (Postgres)
- └─ notification.send       (e-mail simulado; falha aqui não desfaz o pedido)
+pnpm nx run api:serve          # uma tarefa de um projeto
+pnpm nx affected -t test       # só os projetos afetados pelas mudanças
+pnpm nx graph                  # grafo de dependências no browser
+pnpm nx show project api       # targets disponíveis de um projeto
 ```
 
-Se o estoque ou o pagamento falharem, o pedido fica `FAILED` com o motivo, o
-estoque é devolvido e a API responde com o status original (409/402/503) mais o
-`orderId`.
+Banco: `pnpm db:up`, `pnpm db:down`, `pnpm db:migrate`, `pnpm db:seed`.
+Para mudar o schema, edite `apps/api/prisma/schema.prisma` e rode
+`pnpm nx run api:db-migrate-dev`.
 
-## Endpoints
+## Adicionando novos projetos
+
+Use os geradores do Nx para manter o padrão do workspace:
+
+```sh
+pnpm nx g @nx/next:app apps/<nome>           # novo app Next.js
+pnpm nx g @nx/nest:app apps/<nome>           # novo app NestJS
+pnpm nx g @nx/js:lib libs/<escopo>/<nome>    # nova biblioteca
+pnpm nx list                                 # plugins instalados e disponíveis
+```
+
+Depois, rode `pnpm nx sync` para atualizar as referências de TypeScript entre projetos.
+
+## Os apps de exemplo
+
+**API** (`/api`):
 
 | Método | Rota | Descrição |
 |---|---|---|
-| GET | `/api/health` | Liveness + ping no banco |
-| GET | `/api/products`, `/api/products/:id` | Catálogo |
-| POST | `/api/cart` | Cria carrinho |
-| GET | `/api/cart/:id` | Consulta carrinho |
-| POST | `/api/cart/:id/items` | Adiciona item `{ productId, quantity }` |
-| PATCH / DELETE | `/api/cart/:id/items/:itemId` | Altera quantidade / remove |
-| POST | `/api/checkout` | Finaliza `{ cartId }` |
-| GET | `/api/orders/:id` | Consulta pedido |
-| GET / PUT | `/api/chaos` | Lê / altera a configuração de chaos |
-| POST | `/api/chaos/reset` | Zera o chaos |
+| GET | `/health` | Status da API e do banco |
+| GET | `/products`, `/products/:id` | Catálogo |
+| POST | `/cart` | Cria carrinho |
+| GET | `/cart/:id` | Consulta carrinho |
+| POST | `/cart/:id/items` | Adiciona item `{ productId, quantity }` |
+| PATCH / DELETE | `/cart/:id/items/:itemId` | Altera quantidade / remove |
+| POST | `/checkout` | Finaliza a compra `{ cartId }` |
+| GET | `/orders/:id` | Consulta pedido |
+| GET / PUT / POST | `/chaos`, `/chaos/reset` | Simulação de latência e falhas |
 
-## Chaos
+O checkout cria o pedido, reserva estoque, cobra o pagamento (simulado) e envia a
+notificação (simulada). Se estoque ou pagamento falharem, o pedido fica `FAILED` e o
+estoque é devolvido.
 
-A página `/chaos` (ou `PUT /api/chaos`) injeta latência e taxa de erro em
-`products`, `inventory`, `payment` e `notification`. A configuração fica em memória.
-
-```sh
-# 100% de recusa no pagamento
-curl -X PUT localhost:3000/api/chaos -H 'content-type: application/json' \
-  -d '{"payment":{"latencyMs":0,"errorRate":1}}'
-```
-
-Cenários sugeridos para a demo:
-- **Pagamento 100% erro**: 402, pedido `FAILED`, estoque devolvido.
-- **Estoque +3000 ms**: um span lento e fácil de achar no trace.
-- **Notificação 100% erro**: pedido `PAID`, mas com erro registrado (falha "silenciosa").
-- **Catálogo 50% erro**: a home do Next falha com 503 vindo do servidor.
-
-## Onde a telemetria vai entrar
-
-- `apps/api/src/instrumentation.ts`: importado na 1ª linha do `main.ts` (SDK OTel Node).
-- `apps/web/src/instrumentation.ts`: hook `register()` nativo do Next.js.
-- `apps/api/src/common/all-exceptions.filter.ts`: registrar exceções no span ativo.
-- `apps/api/src/common/request-logging.middleware.ts`: logs de requisição (correlacionar com trace id).
-- O CORS da API já aceita os cabeçalhos `traceparent`, `tracestate` e `baggage`.
+**Web**: catálogo e detalhe de produto (Server Components), carrinho e checkout, e a
+página `/chaos`, que injeta latência e erros nos serviços da API para simular falhas.
 
 ## Observações técnicas
 
@@ -95,3 +114,4 @@ Cenários sugeridos para a demo:
   não é encontrado.
 - Os `jest.config` estão em `.cjs` porque o Jest 30 compila configs `.cts` com
   `moduleResolution=node10`, que o TypeScript 6 rejeita.
+- O Prisma Client é gerado no `postinstall` (`nx run api:prisma-generate`).
